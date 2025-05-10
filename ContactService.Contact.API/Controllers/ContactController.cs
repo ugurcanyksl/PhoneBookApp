@@ -7,7 +7,7 @@ using PhoneBookMicroservices.Shared.Models;
 
 namespace ContactService.Contact.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/v1/[controller]")]  // API versiyonlaması
     [ApiController]
     public class ContactController : ControllerBase
     {
@@ -22,6 +22,11 @@ namespace ContactService.Contact.API.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateContact([FromBody] CreateContactDto createContactDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var person = new Person
             {
                 Id = Guid.NewGuid(),
@@ -95,6 +100,11 @@ namespace ContactService.Contact.API.Controllers
         [HttpPost("{personId}/contact-info")]
         public async Task<IActionResult> AddContactInfo(Guid personId, [FromBody] ContactInfoDto contactInfoDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);  // Eğer gelen veri geçerli değilse, BadRequest döndürüyoruz.
+            }
+
             var contactInfo = new ContactInfo
             {
                 Id = Guid.NewGuid(),
@@ -114,6 +124,14 @@ namespace ContactService.Contact.API.Controllers
             if (!result) return NotFound();
 
             return NoContent();
+        }
+
+        // Global exception handling için özel hata dönüşü
+        [NonAction]
+        public IActionResult HandleException(Exception ex)
+        {
+            // Loglama yapılabilir
+            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
         }
     }
 }
