@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using ReportService.Report.API.Infrastructure;
 using ReportService.Report.API.Infrastructure.AutoMapper;
+using ReportService.Report.API.Infrastructure.Configuration;
 using ReportService.Report.API.Infrastructure.Kafka;
 using ReportService.Report.API.Repositories;
 using ReportService.Report.API.Services;
@@ -25,6 +27,13 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         options.UseNpgsql(configuration.GetConnectionString("ReportDbConnection")));
 
     services.AddControllers();
+
+    // Kafka configuration
+    services.Configure<KafkaSettings>(configuration.GetSection("Kafka"));
+
+    // Kafka producer
+    services.AddSingleton<IReportProducer, ReportProducer>();
+
     services.AddEndpointsApiExplorer();
     services.AddSwaggerGen();
     services.AddAutoMapper(typeof(ConfigureAutoMapper).Assembly);

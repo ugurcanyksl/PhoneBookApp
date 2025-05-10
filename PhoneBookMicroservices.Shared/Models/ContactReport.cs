@@ -17,14 +17,14 @@ namespace PhoneBookMicroservices.Shared.Models
 
     public class ReportDetail
     {
-        [Key]  // Bu satır birincil anahtar olduğunu belirtir
+        [Key]
         public Guid Id { get; set; }
         public string Location { get; set; }
         public int TotalContacts { get; set; }
         public int TotalPhoneNumbers { get; set; }
 
-        public Guid ContactReportId { get; set; }  // Yabancı anahtar
-        public ContactReport ContactReport { get; set; }  // İlişkiyi belirtmek
+        public Guid ContactReportId { get; set; }
+        public ContactReport ContactReport { get; set; }
     }
 
     public enum ReportStatus

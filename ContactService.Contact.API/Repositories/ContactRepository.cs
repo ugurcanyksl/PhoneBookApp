@@ -47,7 +47,7 @@ namespace ContactService.Contact.API.Repositories
                 {
                     person.ContactInfos.Add(contactInfo);
                     await SaveChangesAsync();
-                    return true;  // Değiştirildi
+                    return true;
                 }
                 return false;
             }

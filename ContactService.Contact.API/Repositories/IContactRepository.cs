@@ -11,6 +11,6 @@ namespace ContactService.Contact.API.Repositories
 
         Task<bool> AddContactInfoAsync(Guid personId, ContactInfo contactInfo);
         Task<bool> DeleteContactInfoAsync(Guid personId, Guid infoId);
-        Task SaveChangesAsync(); // Save changes method
+        Task SaveChangesAsync();
     }
 }

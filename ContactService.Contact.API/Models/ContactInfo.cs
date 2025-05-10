@@ -7,5 +7,6 @@
         public string InfoContent { get; set; }
         public Guid ContactId { get; set; }
         public Contact Contact { get; set; }
+        public string Location { get; set; } // Konum bilgisi ekleniyor
     }
 }
