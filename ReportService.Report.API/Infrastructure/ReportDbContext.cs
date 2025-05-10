@@ -19,7 +19,7 @@ namespace ReportService.Report.API.Infrastructure
             modelBuilder.Entity<ContactReport>()
                 .HasMany(cr => cr.Details)  // ContactReport, birden çok ReportDetail içerir
                 .WithOne(rd => rd.ContactReport)  // Her ReportDetail, bir ContactReport'a aittir
-                .HasForeignKey(rd => rd.ContactReportId);  // Yabancı anahtar
+                .HasForeignKey(rd => rd.ContactReportId);
         }
     }
 }

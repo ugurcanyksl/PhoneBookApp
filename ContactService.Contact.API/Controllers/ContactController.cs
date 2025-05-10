@@ -28,7 +28,7 @@ namespace ContactService.Contact.API.Controllers
                 FirstName = createContactDto.FirstName,
                 LastName = createContactDto.LastName,
                 Company = createContactDto.Company,
-                ContactInfos = new List<ContactInfo>() // İlk başta boş bir liste
+                ContactInfos = new List<ContactInfo>()
             };
 
             await _contactRepository.AddAsync(person);

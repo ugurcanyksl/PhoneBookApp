@@ -17,13 +17,15 @@ namespace ContactService.Tests.Services
     {
         private readonly Mock<IContactRepository> _contactRepositoryMock;
         private readonly Mock<IMapper> _mapperMock;
+        private readonly Mock<KafkaProducerService> _kafkaProducerServiceMock;
         private readonly ContactImplementationService _contactService;
 
         public ContactServiceTests()
         {
             _contactRepositoryMock = new Mock<IContactRepository>();
             _mapperMock = new Mock<IMapper>();
-            _contactService = new ContactImplementationService(_contactRepositoryMock.Object, _mapperMock.Object);
+            _kafkaProducerServiceMock = new Mock<KafkaProducerService>();
+            _contactService = new ContactImplementationService(_contactRepositoryMock.Object, _mapperMock.Object, _kafkaProducerServiceMock.Object);
         }
 
         // CreateAsync Test
@@ -65,6 +67,22 @@ namespace ContactService.Tests.Services
         {
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentNullException>(() => _contactService.CreateAsync(null));
+        }
+
+        // Edge case test: CreateAsync with missing required fields
+        [Fact]
+        public async Task CreateAsync_ShouldThrowArgumentException_WhenRequiredFieldsAreMissing()
+        {
+            // Arrange
+            var dto = new CreateContactDto
+            {
+                FirstName = string.Empty,  // Missing first name
+                LastName = "Doe",
+                Company = "ABC Corp"
+            };
+
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(() => _contactService.CreateAsync(dto));
         }
 
         // GetByIdAsync Test
@@ -194,6 +212,54 @@ namespace ContactService.Tests.Services
 
             // Assert
             Assert.True(result);
+        }
+
+        // KafkaProducerService Hata Testi
+        [Fact]
+        public async Task KafkaProducerService_ShouldHandleSendMessageError()
+        {
+            // Arrange
+            var kafkaProducerService = new Mock<KafkaProducerService>();
+            kafkaProducerService.Setup(k => k.SendMessageAsync(It.IsAny<string>(), It.IsAny<string>()))
+                                .ThrowsAsync(new Exception("Kafka error"));
+
+            // Act & Assert
+            await Assert.ThrowsAsync<Exception>(() => kafkaProducerService.Object.SendMessageAsync("contact-topic", "Test message"));
+        }
+
+        // Performans Testi (yavaş çalışan metotlar için)
+        [Fact]
+        public async Task CreateAsync_ShouldNotTakeTooLong()
+        {
+            // Arrange
+            var dto = new CreateContactDto
+            {
+                FirstName = "John",
+                LastName = "Doe",
+                Company = "ABC Corp"
+            };
+
+            var person = new Person
+            {
+                Id = Guid.NewGuid(),
+                FirstName = dto.FirstName,
+                LastName = dto.LastName,
+                Company = dto.Company
+            };
+
+            _mapperMock.Setup(m => m.Map<Person>(It.IsAny<CreateContactDto>())).Returns(person);
+            _contactRepositoryMock.Setup(repo => repo.AddAsync(It.IsAny<Person>())).Returns(Task.CompletedTask);
+            _contactRepositoryMock.Setup(repo => repo.SaveChangesAsync()).Returns(Task.CompletedTask);
+
+            // Arrange
+            var start = DateTime.Now; // Burada zaman başlıyor
+
+            // Act
+            var result = await _contactService.CreateAsync(dto);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.True(DateTime.Now - start < TimeSpan.FromSeconds(1), "Method took too long!");
         }
     }
 }
