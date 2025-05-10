@@ -1,33 +1,40 @@
 using ContactService.Contact.API.Infrastructure;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// PostgreSQL için DbContext'i DI (Dependency Injection) konteynýrýna ekliyoruz
-builder.Services.AddDbContext<ContactDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("ContactDbConnection")));
-
-
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+ConfigureServices(builder.Services, builder.Configuration);
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.MapControllers();
+ConfigureMiddleware(app);
 
 app.Run();
+
+// Method to configure services
+void ConfigureServices(IServiceCollection services, IConfiguration configuration)
+{
+    // PostgreSQL için DbContext'i DI (Dependency Injection) konteynýrýna ekliyoruz
+    services.AddDbContext<ContactDbContext>(options =>
+        options.UseNpgsql(configuration.GetConnectionString("ContactDbConnection")));
+
+    services.AddControllers();
+    services.AddEndpointsApiExplorer();
+    services.AddSwaggerGen();
+}
+
+// Method to configure middleware
+void ConfigureMiddleware(WebApplication app)
+{
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+    }
+
+    app.UseHttpsRedirection();
+    app.UseAuthorization();
+    app.MapControllers();
+}

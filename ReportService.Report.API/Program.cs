@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using ReportService.Report.API.Infrastructure;
 using ReportService.Report.API.Infrastructure.AutoMapper;
 using ReportService.Report.API.Infrastructure.Kafka;
@@ -8,39 +7,47 @@ using ReportService.Report.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//Report DB
-builder.Services.AddDbContext<ReportDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("ReportDbConnection")));
-
-
 // Add services to the container.
-
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-builder.Services.AddAutoMapper(typeof(ConfigureAutoMapper).Assembly);
-
-// Diðer servisler
-builder.Services.AddScoped<ReportConsumer>();
-builder.Services.AddScoped<IHostedService, ReportConsumerHostedService>();
-
-// Baðýmlýlýk injeksiyonu
-builder.Services.AddScoped<IReportImplementationService, ReportImplementationService>();
-builder.Services.AddScoped<IReportRepository, ReportRepository>();
+ConfigureServices(builder.Services, builder.Configuration);
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.MapControllers();
+ConfigureMiddleware(app);
 
 app.Run();
+
+// Method to configure services
+void ConfigureServices(IServiceCollection services, IConfiguration configuration)
+{
+    // Report DB
+    services.AddDbContext<ReportDbContext>(options =>
+        options.UseNpgsql(configuration.GetConnectionString("ReportDbConnection")));
+
+    services.AddControllers();
+    services.AddEndpointsApiExplorer();
+    services.AddSwaggerGen();
+    services.AddAutoMapper(typeof(ConfigureAutoMapper).Assembly);
+
+    // Other services
+    services.AddScoped<ReportConsumer>();
+    services.AddScoped<IHostedService, ReportConsumerHostedService>();
+
+    // Dependency injection
+    services.AddScoped<IReportImplementationService, ReportImplementationService>();
+    services.AddScoped<IReportRepository, ReportRepository>();
+}
+
+// Method to configure middleware
+void ConfigureMiddleware(WebApplication app)
+{
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+    }
+
+    app.UseHttpsRedirection();
+    app.UseAuthorization();
+    app.MapControllers();
+}
