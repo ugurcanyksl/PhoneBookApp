@@ -1,21 +1,34 @@
-﻿namespace ReportService.Report.API.Infrastructure.Kafka
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace ReportService.Report.API.Infrastructure.Kafka
 {
     public class ReportConsumerHostedService : IHostedService
     {
-        private readonly ReportConsumer _consumer;
+        private readonly IServiceScopeFactory _scopeFactory;
         private readonly ILogger<ReportConsumerHostedService> _logger;
         private CancellationTokenSource _cts;
 
-        public ReportConsumerHostedService(ReportConsumer consumer, ILogger<ReportConsumerHostedService> logger)
+        public ReportConsumerHostedService(IServiceScopeFactory scopeFactory, ILogger<ReportConsumerHostedService> logger)
         {
-            _consumer = consumer;
+            _scopeFactory = scopeFactory;
             _logger = logger;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _cts = new CancellationTokenSource();
-            Task.Run(() => _consumer.StartConsuming(_cts.Token));
+
+            Task.Run(() =>
+            {
+                using var scope = _scopeFactory.CreateScope();
+                var consumer = scope.ServiceProvider.GetRequiredService<ReportConsumer>();
+                consumer.StartConsuming(_cts.Token);
+            });
+
             _logger.LogInformation("ContactReport Consumer started.");
             return Task.CompletedTask;
         }
@@ -27,5 +40,4 @@
             return Task.CompletedTask;
         }
     }
-
 }

@@ -2,6 +2,7 @@
 using Confluent.Kafka;
 using ContactService.Contact.API.Repositories;
 using ContactService.Contact.API.Services;
+using Newtonsoft.Json;
 using PhoneBookMicroservices.Shared.DTOs;
 using PhoneBookMicroservices.Shared.Models;
 
@@ -9,34 +10,28 @@ public class KafkaConsumerService : IHostedService
 {
     private readonly string _bootstrapServers = "localhost:9092";
     private readonly string _topic = "phonebook-reports";
-    private readonly IContactRepository _contactRepository;
-    private readonly IMapper _mapper;
-    private readonly KafkaProducerService _kafkaProducerService;
+    private readonly IServiceScopeFactory _scopeFactory;
+    private CancellationTokenSource _cts;
 
-    public KafkaConsumerService(
-        IContactRepository contactRepository,
-        IMapper mapper,
-        KafkaProducerService kafkaProducerService)
+    public KafkaConsumerService(IServiceScopeFactory scopeFactory)
     {
-        _contactRepository = contactRepository;
-        _mapper = mapper;
-        _kafkaProducerService = kafkaProducerService;
+        _scopeFactory = scopeFactory;
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        Task.Run(() => StartConsuming(cancellationToken)); // Kafka consumer'ı başlatıyoruz
+        _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        Task.Run(() => StartConsuming(_cts.Token));
         return Task.CompletedTask;
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
     {
-        
+        _cts?.Cancel(); // Tüketici düzgün dursun
         return Task.CompletedTask;
     }
 
-    // Kafka mesajları dinleyecek metod
-    public async Task StartConsuming(CancellationToken cancellationToken)
+    private async Task StartConsuming(CancellationToken cancellationToken)
     {
         var config = new ConsumerConfig
         {
@@ -45,43 +40,52 @@ public class KafkaConsumerService : IHostedService
             AutoOffsetReset = AutoOffsetReset.Earliest
         };
 
-        using (var consumer = new ConsumerBuilder<Ignore, string>(config).Build())
-        {
-            consumer.Subscribe(_topic);
+        using var consumer = new ConsumerBuilder<Ignore, string>(config).Build();
+        consumer.Subscribe(_topic);
 
-            try
+        try
+        {
+            while (!cancellationToken.IsCancellationRequested)
             {
-                while (!cancellationToken.IsCancellationRequested)
+                try
                 {
-                    try
-                    {
-                        var consumeResult = consumer.Consume(cancellationToken);
-                        Console.WriteLine($"Message received: {consumeResult.Message.Value}");
-                        await ProcessMessageAsync(consumeResult.Message.Value);
-                    }
-                    catch (ConsumeException e)
-                    {
-                        Console.WriteLine($"Error: {e.Error.Reason}");
-                    }
+                    var consumeResult = consumer.Consume(cancellationToken);
+                    Console.WriteLine($"Message received: {consumeResult.Message.Value}");
+                    await ProcessMessageAsync(consumeResult.Message.Value);
+                }
+                catch (ConsumeException ex)
+                {
+                    Console.WriteLine($"Kafka consume error: {ex.Error.Reason}");
                 }
             }
-            catch (OperationCanceledException)
-            {
-                consumer.Close();
-            }
+        }
+        catch (OperationCanceledException)
+        {
+            Console.WriteLine("Kafka consumer gracefully shutting down.");
+        }
+        finally
+        {
+            consumer.Close();
         }
     }
 
     private async Task ProcessMessageAsync(string message)
     {
-        var contactDto = Newtonsoft.Json.JsonConvert.DeserializeObject<CreateContactDto>(message);
+        using var scope = _scopeFactory.CreateScope(); // Scoped servisler için scope oluşturuluyor
+
+        var contactRepository = scope.ServiceProvider.GetRequiredService<IContactRepository>();
+        var mapper = scope.ServiceProvider.GetRequiredService<IMapper>();
+        var kafkaProducerService = scope.ServiceProvider.GetRequiredService<KafkaProducerService>();
+
+        var contactDto = JsonConvert.DeserializeObject<CreateContactDto>(message);
 
         if (contactDto != null)
         {
-            var person = _mapper.Map<Person>(contactDto);
-            await _contactRepository.AddAsync(person);
-            await _contactRepository.SaveChangesAsync();
-            await _kafkaProducerService.SendMessageAsync("phonebook-reports", "Rapor Oluşturuldu");
+            var person = mapper.Map<Person>(contactDto);
+            await contactRepository.AddAsync(person);
+            await contactRepository.SaveChangesAsync();
+
+            await kafkaProducerService.SendMessageAsync("phonebook-reports", "Rapor Oluşturuldu");
         }
     }
 }

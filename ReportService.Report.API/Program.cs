@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using ReportService.Report.API.Infrastructure;
 using ReportService.Report.API.Infrastructure.AutoMapper;
 using ReportService.Report.API.Infrastructure.Configuration;
@@ -19,35 +18,39 @@ ConfigureMiddleware(app);
 
 app.Run();
 
-// Method to configure services
+// --- Service Registration ---
 void ConfigureServices(IServiceCollection services, IConfiguration configuration)
 {
-    // Report DB
+    // DB
     services.AddDbContext<ReportDbContext>(options =>
         options.UseNpgsql(configuration.GetConnectionString("ReportDbConnection")));
 
+    // Controllers
     services.AddControllers();
 
-    // Kafka configuration
+    // Kafka config
     services.Configure<KafkaSettings>(configuration.GetSection("Kafka"));
 
     // Kafka producer
     services.AddSingleton<IReportProducer, ReportProducer>();
 
-    services.AddEndpointsApiExplorer();
-    services.AddSwaggerGen();
+    // Kafka consumer and hosted service
+    services.AddScoped<ReportConsumer>(); 
+    services.AddSingleton<IHostedService, ReportConsumerHostedService>(); // Singleton hosted service
+
+    // AutoMapper
     services.AddAutoMapper(typeof(ConfigureAutoMapper).Assembly);
 
-    // Other services
-    services.AddScoped<ReportConsumer>();
-    services.AddScoped<IHostedService, ReportConsumerHostedService>();
+    // Swagger
+    services.AddEndpointsApiExplorer();
+    services.AddSwaggerGen();
 
-    // Dependency injection
+    // App Services
     services.AddScoped<IReportImplementationService, ReportImplementationService>();
     services.AddScoped<IReportRepository, ReportRepository>();
 }
 
-// Method to configure middleware
+// --- Middleware Configuration ---
 void ConfigureMiddleware(WebApplication app)
 {
     if (app.Environment.IsDevelopment())
