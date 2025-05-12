@@ -346,7 +346,6 @@ namespace ContactService.Tests.Services
             await Assert.ThrowsAsync<Exception>(() => _contactService.AddContactInfoAsync(personId, contactInfoDto));
         }
 
-        // RemoveContactInfoAsync Test
         [Fact]
         public async Task RemoveContactInfoAsync_ShouldReturnTrue_WhenContactInfoRemoved()
         {

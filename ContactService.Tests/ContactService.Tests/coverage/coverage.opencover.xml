@@ -2,9 +2,9 @@
 <CoverageSession>
   <Summary numSequencePoints="705" visitedSequencePoints="267" numBranchPoints="74" visitedBranchPoints="54" sequenceCoverage="37.87" branchCoverage="72.97" maxCyclomaticComplexity="102" minCyclomaticComplexity="102" visitedClasses="35" numClasses="42" visitedMethods="40" numMethods="53" />
   <Modules>
-    <Module hash="E48FF70E-5A5A-43F7-9A70-B6CEDB659267">
+    <Module hash="BC08C8C7-1F88-46F2-A804-2FAFA78F9C77">
       <ModulePath>ContactService.Contact.API.dll</ModulePath>
-      <ModuleTime>2025-05-12T10:06:55</ModuleTime>
+      <ModuleTime>2025-05-12T10:12:15</ModuleTime>
       <ModuleName>ContactService.Contact.API</ModuleName>
       <Files>
         <File uid="1" fullPath="https://raw.githubusercontent.com/ugurcanyksl/PhoneBookApp/af56ead10eeb7a4d2bd7183babf0646b6a7a9627/ContactService.Contact.API/Program.cs" />

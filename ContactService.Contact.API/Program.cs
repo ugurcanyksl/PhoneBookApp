@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using Microsoft.Extensions.Hosting;
 using ReportService.Report.API;
+using Confluent.Kafka;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,7 +48,11 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     var bootstrapServers = builder.Configuration["Kafka:BootstrapServers"];
     var topic = builder.Configuration["Kafka:Topic"];
     builder.Services.AddSingleton<IKafkaProducerService>(sp =>
-    new KafkaProducerService("bootstrapServers", topic));
+    {
+        var config = new ProducerConfig { BootstrapServers = bootstrapServers ?? "localhost:9092" };
+        var producer = new ProducerBuilder<Null, string>(config).Build();
+        return new KafkaProducerService(producer, bootstrapServers ?? "localhost:9092", topic ?? "test-topic");
+    });
 
     // Kafka Consumer background service (uses IServiceScopeFactory inside)
     services.AddSingleton<IHostedService, KafkaConsumerService>();
