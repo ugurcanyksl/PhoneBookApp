@@ -16,8 +16,8 @@ namespace ReportService.Report.API.Infrastructure.AutoMapper
                 .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.FirstName))
                 .ForMember(dest => dest.LastName, opt => opt.MapFrom(src => src.LastName))
                 .ForMember(dest => dest.Company, opt => opt.MapFrom(src => src.Company))
-                .ForMember(dest => dest.Id, opt => opt.Ignore()) // Id güncellenmemeli
-                .ForMember(dest => dest.ContactInfos, opt => opt.Ignore()); // ContactInfos güncellenmemeli
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.ContactInfos, opt => opt.Ignore());
             CreateMap<ContactInfoDto, ContactInfo>();
 
             // Report mappings

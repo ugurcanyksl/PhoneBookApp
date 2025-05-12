@@ -73,16 +73,28 @@ namespace ContactService.Contact.API.Repositories
         public async Task SaveChangesAsync() =>
             await _dbContext.SaveChangesAsync();
 
-        public async Task<List<Person>> GetByLocationAsync(string location) =>
-            await _dbContext.Contacts
+        public async Task<List<Person>> GetByLocationAsync(string location)
+        {
+            if (location == null)
+                throw new ArgumentNullException(nameof(location));
+
+            return await _dbContext.Contacts
                 .Include(c => c.ContactInfos)
                 .Where(c => c.ContactInfos.Any(ci => ci.InfoType == InfoType.Location && ci.InfoContent == location))
                 .ToListAsync();
+        }
 
-        public async Task<List<Person>> GetAllPagedAsync(int page, int pageSize) =>
-            await _dbContext.Contacts.Include(c => c.ContactInfos)
+        public async Task<List<Person>> GetAllPagedAsync(int page, int pageSize)
+        {
+            if (page <= 0)
+                throw new ArgumentException("Page number must be greater than zero.", nameof(page));
+            if (pageSize <= 0)
+                throw new ArgumentException("Page size must be greater than zero.", nameof(pageSize));
+
+            return await _dbContext.Contacts.Include(c => c.ContactInfos)
                             .Skip((page - 1) * pageSize)
                             .Take(pageSize)
                             .ToListAsync();
+        }
     }
 }
