@@ -5,6 +5,7 @@ using ReportService.Report.API.Infrastructure.Configuration;
 using ReportService.Report.API.Infrastructure.Kafka;
 using ReportService.Report.API.Repositories;
 using ReportService.Report.API.Services;
+using System.Net.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +29,9 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     // Controllers
     services.AddControllers();
 
+    // HTTP Client for ContactService
+    services.AddHttpClient();
+
     // Kafka config
     services.Configure<KafkaSettings>(configuration.GetSection("Kafka"));
 
@@ -35,7 +39,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddSingleton<IReportProducer, ReportProducer>();
 
     // Kafka consumer and hosted service
-    services.AddScoped<ReportConsumer>(); 
+    services.AddScoped<ReportConsumer>();
     services.AddSingleton<IHostedService, ReportConsumerHostedService>(); // Singleton hosted service
 
     // AutoMapper

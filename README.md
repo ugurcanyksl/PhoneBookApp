@@ -1,112 +1,163 @@
-# 📞 PhoneBook Microservices Project
+📞 PhoneBook Microservices Project
+Bu proje, mikroservis mimarisi ile geliştirilen bir Rehber Uygulaması örneğidir. Kullanıcıların kişisel bilgilerini (isim, soyisim, firma, iletişim bilgileri) saklayabileceği ve konum bazlı raporlar oluşturabileceği bir sistemdir.
+📦 Proje Bileşenleri
 
-Bu proje, mikroservis mimarisi ile geliştirilen bir **Rehber Uygulaması örneğidir. Kullanıcıların kişisel bilgilerini (isim, soyisim, firma, iletişim bilgileri) saklayabileceği ve konum bazlı raporlar oluşturabileceği bir sistemdir.
+ContactService: Kişi ve iletişim bilgilerini yönetir.
+ReportService: Kafka ile gelen rapor isteklerini alır, işler ve konum bazlı raporlar üretir.
 
-## 📦 Proje Bileşenleri
+🔧 Kullanılan Teknolojiler
 
-Bu çözümde iki ana mikroservis bulunmaktadır:
 
-- **ContactService**: Kişi ve iletişim bilgilerini yönetir.
-- **ReportService**: Kafka ile gelen rapor isteklerini alır, işler ve konum bazlı raporlar üretir.
 
-## 🔧 Kullanılan Teknolojiler
+Teknoloji
+Açıklama
 
-| Teknoloji         	| Açıklama                                  |
-|-----------------------|-------------------------------------------|
-| .NET Core 7.0    	| Mikroservis altyapısı                     |
-| PostgreSQL       	| Veritabanı olarak kullanılır              |
-| Entity Framework Core | ORM katmanı                         	    |
-| Kafka (Confluent) 	| Mikroservisler arası asenkron iletişim    |
-| AutoMapper       	| DTO ve Model mapleme                      |
-| xUnit & Moq      	| Birim testleri için                       |
-| Docker (Opsiyonel) 	| Dağıtım ve container ortamı (isteğe bağlı)|
 
-## 🗃️ Katmanlı Yapı
 
-### ContactService
+.NET Core 8.0
+Mikroservis altyapısı
 
-- `Controllers`: API uçları (endpointler)
-- `Services`: İş mantığı (`ContactImplementationService`)
-- `Repositories`: Veritabanı işlemleri (`IContactRepository`)
-- `Models`: Entity sınıfları (`Person`, `ContactInfo`)
-- `DTOs`: Veri transfer nesneleri (`CreateContactDto`, `ContactDto`)
-- `Tests`: xUnit ile yazılmış birim testleri
 
-### ReportService
+PostgreSQL
+Veritabanı olarak kullanılır
 
-- `Controllers`: Rapor isteklerinin işlendiği API
-- `Services`: Rapor oluşturma mantığı (`IReportImplementationService`)
-- `Kafka`: Kafka Consumer & HostedService sınıfları (`ReportConsumer`, `ReportConsumerHostedService`)
-- `DTOs`: Rapor ve detay DTO'ları (`ReportRequestDto`, `ReportDto`)
-- `AutoMapper`: DTO ↔ Model dönüşümleri (`ConfigureAutoMapper`)
 
----
+Entity Framework Core
+ORM katmanı
 
-## 🧪 Testler
 
-### ContactService Unit Testleri
+Kafka (Confluent)
+Mikroservisler arası asenkron iletişim
 
-Testler `ContactService.Tests` projesi altında yer almakta olup, servis katmanı için yazılmıştır:
 
-| Test 								   | Açıklama 				      |
-|------------------------------------------------------------------|------------------------------------------|
-| `CreateAsync_ShouldReturnPerson_WhenValidData` 		   | Geçerli DTO ile kişi oluşturulması       |
-| `CreateAsync_ShouldThrowArgumentNullException_WhenDtoIsNull`     | Boş DTO durumunda exception fırlatılması |
-| `GetByIdAsync_ShouldReturnPerson_WhenPersonExists` 	           | Kişi varsa geri döner 		      |
-| `GetByIdAsync_ShouldReturnNull_WhenPersonDoesNotExist` 	   | Kişi yoksa null döner 		      |
-| `GetAllAsync_ShouldReturnListOfPersons` 		           | Tüm kişilerin listelenmesi 	      |
-| `DeleteAsync_ShouldReturnTrue_WhenPersonDeleted` 		   | Silme başarılıysa true döner 	      |
-| `DeleteAsync_ShouldReturnFalse_WhenPersonNotFound` 		   | Silme başarısızsa false döner 	      |
-| `AddContactInfoAsync_ShouldReturnTrue_WhenContactInfoAdded` 	   | İletişim bilgisi eklenmesi 	      |
-| `RemoveContactInfoAsync_ShouldReturnTrue_WhenContactInfoRemoved` | İletişim bilgisi silinmesi 	      |
+AutoMapper
+DTO ve Model mapleme
 
-Testler `Moq` kullanılarak bağımlılıkların izole edilmesiyle yazılmıştır.
 
----
+xUnit & Moq
+Birim testleri için
 
-## 📨 Kafka Entegrasyonu
 
-### Senaryo
+Docker (Opsiyonel)
+Dağıtım ve container ortamı (isteğe bağlı)
 
-1. `ReportService.Report.API` bir **Kafka Consumer** içerir.
-2. `report-request-topic` adlı topic'ten veri dinler.
-3. Tüketilen veri `ReportRequestDto` nesnesine dönüştürülür.
-4. `CreateAsync` metodu çağrılarak rapor hazırlanır.
 
-### Dosyalar
+🗃️ Katmanlı Yapı
+ContactService
 
-- `ReportConsumer.cs`: Kafka mesajlarını dinleyen ana sınıf.
-- `ReportConsumerHostedService.cs`: Background service olarak Kafka consumer’ı başlatır ve durdurur.
+Controllers: API uçları (endpointler)
+Services: İş mantığı (ContactImplementationService)
+Repositories: Veritabanı işlemleri (IContactRepository)
+Tests: xUnit ile yazılmış birim testleri
 
----
+ReportService
 
-## 🧭 API Uç Noktaları
+Controllers: Rapor isteklerinin işlendiği API
+Services: Rapor oluşturma mantığı (IReportImplementationService)
+Kafka: Kafka Consumer & HostedService sınıfları (ReportConsumer, ReportConsumerHostedService)
 
-### ContactService
+🚀 Kurulum ve Çalıştırma
+1. Bağımlılıklar
 
-| HTTP 	  | Endpoint                                         | Açıklama 	            |
-|---------|--------------------------------------------------|------------------------------|
-| `POST`  | `/api/contacts` 				     | Yeni kişi ekleme             |
-| `GET`   | `/api/contacts/{id}` 			     | Belirli kişiyi getir         |
-| `GET`   | `/api/contacts` 				     | Tüm kişileri getir 	    |
-| `DELETE`| `/api/contacts/{id}` 		             | Kişi sil 		    |
-| `POST`  | `/api/contacts/{id}/contactInfo` 		     | Kişiye iletişim bilgisi ekle |
-| `DELETE`| `/api/contacts/{id}/contactInfo/{contactInfoId}` | Kişiden iletişim bilgisi sil |
+.NET 8.0 SDK
+PostgreSQL
+Kafka ve ZooKeeper: localhost:9092 üzerinde çalışmalı.
 
-### ReportService
-
-| HTTP  | Endpoint           | Açıklama                                      |
-|-------|--------------------|-----------------------------------------------|
-| `POST`| `/api/report`      | Belirli bir konum için rapor isteği oluşturur |
-| `GET` | `/api/report/{id}` | Raporu ID ile getirir                         |
-
----
-
-## 🧑‍💻 Nasıl Çalıştırılır?
-
-### 1. Veritabanı Kurulumu
-
-```bash
-# PostgreSQL kurulu olmalı, ardından migration ve update yapılır
+2. Veritabanı Kurulumu
 dotnet ef database update --project ContactService.Contact.API
 dotnet ef database update --project ReportService.Report.API
+
+3. Kafka Kurulumu
+
+Kafka ve ZooKeeper’ı localhost:9092 üzerinde çalıştır.
+Kullanılan topic’ler: phonebook-reports, report-request-topic, report-created-event.
+
+4. Servisleri Çalıştır
+dotnet run --project ContactService.Contact.API
+dotnet run --project ReportService.Report.API
+
+🌐 API Uç Noktaları
+ContactService
+
+
+
+HTTP
+Endpoint
+Açıklama
+
+
+
+POST
+/api/v1/Contact
+Yeni kişi ekleme
+
+
+GET
+/api/v1/Contact/{id}
+Belirli kişiyi getir
+
+
+GET
+/api/v1/Contact?page={page}&pageSize={pageSize}
+Tüm kişileri getir (sayfalama)
+
+
+DELETE
+/api/v1/Contact/{id}
+Kişi sil
+
+
+POST
+/api/v1/Contact/{personId}/contact-info
+Kişiye iletişim bilgisi ekle
+
+
+DELETE
+/api/v1/Contact/{personId}/contact-info/{infoId}
+Kişiden iletişim bilgisi sil
+
+
+GET
+/api/v1/Contact/location/{location}
+Konuma göre kişileri getir
+
+
+ReportService
+
+
+
+HTTP
+Endpoint
+Açıklama
+
+
+
+POST
+/api/Report
+Belirli bir konum için rapor isteği oluşturur
+
+
+GET
+/api/Report/{id}
+Raporu ID ile getirir
+
+
+GET
+/api/Report?page={page}&pageSize={pageSize}
+Tüm raporları getir (sayfalama)
+
+
+🧪 Testler
+Testleri çalıştırmak için:
+dotnet test
+
+Coverage ölçümü için:
+dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
+reportgenerator -reports:coverage.opencover.xml -targetdir:coveragereport -reporttypes:Html
+
+📋 Ortam Değişkenleri
+
+ConnectionStrings__ContactDbConnection: ContactService için PostgreSQL bağlantı string’i.
+ConnectionStrings__ReportDbConnection: ReportService için PostgreSQL bağlantı string’i.
+Kafka: Kafka:BootstrapServers (localhost:9092).
+

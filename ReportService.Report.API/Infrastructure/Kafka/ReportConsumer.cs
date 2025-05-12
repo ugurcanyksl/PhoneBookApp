@@ -39,7 +39,7 @@ namespace ReportService.Report.API.Infrastructure.Kafka
 
                         _logger.LogInformation($"ContactReport request received: {consumeResult.Message.Value}");
 
-                        // Report talebini işleme
+                        
                         _reportService.CreateAsync(reportRequestDto).Wait();
                     }
                     catch (ConsumeException e)

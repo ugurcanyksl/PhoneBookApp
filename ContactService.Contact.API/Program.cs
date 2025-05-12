@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using Microsoft.Extensions.Hosting;
-using ContactService.Contact.API.Repositories.ContactService.Contact.API.Repositories;
+using ReportService.Report.API;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,11 +43,17 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddScoped<IContactRepository, ContactRepository>();
     services.AddScoped<KafkaProducerService>();
 
+    // KafkaProducerService DIF
+    var bootstrapServers = builder.Configuration["Kafka:BootstrapServers"];
+    var topic = builder.Configuration["Kafka:Topic"];
+    builder.Services.AddSingleton<IKafkaProducerService>(sp =>
+    new KafkaProducerService("bootstrapServers", topic));
+
     // Kafka Consumer background service (uses IServiceScopeFactory inside)
     services.AddSingleton<IHostedService, KafkaConsumerService>();
 
     // AutoMapper
-    services.AddAutoMapper(typeof(Program));
+    services.AddAutoMapper(typeof(ReportService.Report.API.Infrastructure.AutoMapper.ConfigureAutoMapper));
 }
 
 void ConfigureMiddleware(WebApplication app)

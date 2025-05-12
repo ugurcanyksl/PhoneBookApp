@@ -6,5 +6,8 @@ namespace ReportService.Report.API.Repositories
     {
         Task<ContactReport> GetByIdAsync(Guid id);
         Task AddAsync(ContactReport report);
+        Task<IEnumerable<Person>> GetContactDataByLocationAsync(string location);
+        Task<List<ContactReport>> GetAllAsync();
+        Task<List<ContactReport>> GetAllPagedAsync(int page, int pageSize);
     }
 }
