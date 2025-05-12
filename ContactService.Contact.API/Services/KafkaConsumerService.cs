@@ -27,7 +27,7 @@ public class KafkaConsumerService : IHostedService
 
     public Task StopAsync(CancellationToken cancellationToken)
     {
-        _cts?.Cancel(); // Tüketici düzgün dursun
+        _cts?.Cancel();
         return Task.CompletedTask;
     }
 
@@ -71,7 +71,7 @@ public class KafkaConsumerService : IHostedService
 
     private async Task ProcessMessageAsync(string message)
     {
-        using var scope = _scopeFactory.CreateScope(); // Scoped servisler için scope oluşturuluyor
+        using var scope = _scopeFactory.CreateScope();
 
         var contactRepository = scope.ServiceProvider.GetRequiredService<IContactRepository>();
         var mapper = scope.ServiceProvider.GetRequiredService<IMapper>();

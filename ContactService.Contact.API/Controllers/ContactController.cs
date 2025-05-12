@@ -7,26 +7,29 @@ using PhoneBookMicroservices.Shared.Models;
 
 namespace ContactService.Contact.API.Controllers
 {
-    [Route("api/v1/[controller]")]  // API versiyonlaması
+    [Route("api/v1/[controller]")]
     [ApiController]
     public class ContactController : ControllerBase
     {
         private readonly IContactRepository _contactRepository;
+        private readonly ILogger<ContactController> _logger;
 
-        public ContactController(IContactRepository contactRepository)
+        public ContactController(IContactRepository contactRepository, ILogger<ContactController> logger)
         {
             _contactRepository = contactRepository;
+            _logger = logger;
         }
 
-        // Kişi oluşturma
         [HttpPost]
         public async Task<IActionResult> CreateContact([FromBody] CreateContactDto createContactDto)
         {
             if (!ModelState.IsValid)
             {
+                _logger.LogWarning("Invalid model state for CreateContact: {Errors}", ModelState);
                 return BadRequest(ModelState);
             }
 
+            _logger.LogInformation("Creating contact for {FirstName} {LastName}", createContactDto.FirstName, createContactDto.LastName);
             var person = new Person
             {
                 Id = Guid.NewGuid(),
@@ -37,15 +40,20 @@ namespace ContactService.Contact.API.Controllers
             };
 
             await _contactRepository.AddAsync(person);
+            _logger.LogInformation("Contact created with ID {Id}", person.Id);
             return CreatedAtAction(nameof(GetContactById), new { id = person.Id }, person);
         }
 
-        // Kişi bilgisi getirme
         [HttpGet("{id}")]
         public async Task<IActionResult> GetContactById(Guid id)
         {
+            _logger.LogInformation("Fetching contact with ID {Id}", id);
             var person = await _contactRepository.GetByIdAsync(id);
-            if (person == null) return NotFound();
+            if (person == null)
+            {
+                _logger.LogWarning("Contact with ID {Id} not found", id);
+                return NotFound();
+            }
 
             var contactDto = new ContactDto
             {
@@ -64,11 +72,11 @@ namespace ContactService.Contact.API.Controllers
             return Ok(contactDto);
         }
 
-        // Tüm kişileri listeleme
         [HttpGet]
-        public async Task<IActionResult> GetAllContacts()
+        public async Task<IActionResult> GetAllContacts(int page = 1, int pageSize = 10)
         {
-            var persons = await _contactRepository.GetAllAsync();
+            _logger.LogInformation("Fetching contacts - Page: {Page}, PageSize: {PageSize}", page, pageSize);
+            var persons = await _contactRepository.GetAllPagedAsync(page, pageSize);
             var contactDtos = persons.Select(p => new ContactDto
             {
                 Id = p.Id,
@@ -83,28 +91,35 @@ namespace ContactService.Contact.API.Controllers
                 }).ToList()
             }).ToList();
 
-            return Ok(contactDtos);
+            _logger.LogInformation("Fetched {Count} contacts", contactDtos.Count);
+            return Ok(new { Data = contactDtos, Page = page, PageSize = pageSize });
         }
 
-        // Kişi silme
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteContact(Guid id)
         {
+            _logger.LogInformation("Deleting contact with ID {Id}", id);
             var result = await _contactRepository.DeleteAsync(id);
-            if (!result) return NotFound();
+            if (!result)
+            {
+                _logger.LogWarning("Contact with ID {Id} not found for deletion", id);
+                return NotFound();
+            }
 
+            _logger.LogInformation("Contact with ID {Id} deleted successfully", id);
             return NoContent();
         }
 
-        // İletişim bilgisi ekleme
         [HttpPost("{personId}/contact-info")]
         public async Task<IActionResult> AddContactInfo(Guid personId, [FromBody] ContactInfoDto contactInfoDto)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);  // Eğer gelen veri geçerli değilse, BadRequest döndürüyoruz.
+                _logger.LogWarning("Invalid model state for AddContactInfo: {Errors}", ModelState);
+                return BadRequest(ModelState);
             }
 
+            _logger.LogInformation("Adding contact info for person ID {PersonId}", personId);
             var contactInfo = new ContactInfo
             {
                 Id = Guid.NewGuid(),
@@ -112,25 +127,59 @@ namespace ContactService.Contact.API.Controllers
                 InfoContent = contactInfoDto.InfoContent
             };
 
-            await _contactRepository.AddContactInfoAsync(personId, contactInfo);
+            var result = await _contactRepository.AddContactInfoAsync(personId, contactInfo);
+            if (!result)
+            {
+                _logger.LogWarning("Person with ID {PersonId} not found for adding contact info", personId);
+                return NotFound();
+            }
+
+            _logger.LogInformation("Contact info added for person ID {PersonId}", personId);
             return Ok(contactInfo);
         }
 
-        // İletişim bilgisi silme
         [HttpDelete("{personId}/contact-info/{infoId}")]
         public async Task<IActionResult> DeleteContactInfo(Guid personId, Guid infoId)
         {
+            _logger.LogInformation("Deleting contact info ID {InfoId} for person ID {PersonId}", infoId, personId);
             var result = await _contactRepository.DeleteContactInfoAsync(personId, infoId);
-            if (!result) return NotFound();
+            if (!result)
+            {
+                _logger.LogWarning("Contact info ID {InfoId} for person ID {PersonId} not found", infoId, personId);
+                return NotFound();
+            }
 
+            _logger.LogInformation("Contact info ID {InfoId} deleted for person ID {PersonId}", infoId, personId);
             return NoContent();
         }
 
-        // Global exception handling için özel hata dönüşü
+        [HttpGet("location/{location}")]
+        public async Task<IActionResult> GetContactsByLocation(string location)
+        {
+            _logger.LogInformation("Fetching contacts for location {Location}", location);
+            var persons = await _contactRepository.GetByLocationAsync(location);
+            var contactDtos = persons.Select(p => new ContactDto
+            {
+                Id = p.Id,
+                FirstName = p.FirstName,
+                LastName = p.LastName,
+                Company = p.Company,
+                ContactInfos = p.ContactInfos.Select(c => new ContactInfoDto
+                {
+                    Id = c.Id,
+                    InfoType = c.InfoType,
+                    InfoContent = c.InfoContent
+                }).ToList()
+            }).ToList();
+
+            _logger.LogInformation("Fetched {Count} contacts for location {Location}", contactDtos.Count, location);
+            return Ok(contactDtos);
+        }
+
         [NonAction]
         public IActionResult HandleException(Exception ex)
         {
-            // Loglama yapılabilir
+            _logger.LogError(ex, "An error occurred: {Message}", ex.Message);
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
         }
     }

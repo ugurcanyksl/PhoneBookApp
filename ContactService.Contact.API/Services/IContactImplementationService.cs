@@ -11,5 +11,7 @@ namespace ContactService.Contact.API.Services
         Task<bool> DeleteAsync(Guid id);
         Task<bool> AddContactInfoAsync(Guid personId, ContactInfoDto contactInfoDto);
         Task<bool> RemoveContactInfoAsync(Guid personId, Guid contactInfoId);
+        Task<List<Person>> GetByLocationAsync(string location);
+        Task<bool> UpdateAsync(Guid personId, UpdateContactDto updateDto);
     }
 }

@@ -5,7 +5,7 @@
         public Guid ReportId { get; set; }
         public string Status { get; set; }
         public DateTime CreatedAt { get; set; }
-        public string? FilePath { get; set; }  // Opsiyonel
+        public string? FilePath { get; set; }
 
         public ReportCreatedIntegrationEvent(Guid reportId, string status, DateTime createdAt, string? filePath = null)
         {

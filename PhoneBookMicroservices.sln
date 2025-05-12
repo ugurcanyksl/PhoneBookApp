@@ -11,6 +11,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PhoneBookMicroservices.Shar
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ContactService.Tests", "ContactService.Tests\ContactService.Tests.csproj", "{B4712C97-B88A-43B1-B2A3-4E3A14C0DCBF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhoneBookMicroservices.Tests", "PhoneBookMicroservices.Tests\PhoneBookMicroservices.Tests.csproj", "{4616D338-4594-47BD-B052-E4A4F085C384}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReportService.Tests", "ReportService.Tests\ReportService.Tests.csproj", "{304D52AA-B1E6-4D73-B96B-DA9567108D0D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +37,14 @@ Global
 		{B4712C97-B88A-43B1-B2A3-4E3A14C0DCBF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B4712C97-B88A-43B1-B2A3-4E3A14C0DCBF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B4712C97-B88A-43B1-B2A3-4E3A14C0DCBF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4616D338-4594-47BD-B052-E4A4F085C384}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4616D338-4594-47BD-B052-E4A4F085C384}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4616D338-4594-47BD-B052-E4A4F085C384}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4616D338-4594-47BD-B052-E4A4F085C384}.Release|Any CPU.Build.0 = Release|Any CPU
+		{304D52AA-B1E6-4D73-B96B-DA9567108D0D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{304D52AA-B1E6-4D73-B96B-DA9567108D0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{304D52AA-B1E6-4D73-B96B-DA9567108D0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{304D52AA-B1E6-4D73-B96B-DA9567108D0D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

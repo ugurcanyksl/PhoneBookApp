@@ -26,6 +26,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PhoneBookMicroservices.Shared\PhoneBookMicroservices.Shared.csproj" />
+    <ProjectReference Include="..\ReportService.Report.API\ReportService.Report.API.csproj" />
   </ItemGroup>
 
 </Project>

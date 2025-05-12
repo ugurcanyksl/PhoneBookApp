@@ -2,26 +2,29 @@
 
 namespace ContactService.Contact.API.Services
 {
-    public class KafkaProducerService
+    public class KafkaProducerService : IKafkaProducerService
     {
-        private readonly string _bootstrapServers = "localhost:9092";
-        private readonly string _topic = "phonebook-reports";
+        private readonly IProducer<Null, string> _producer;
+        private readonly string _topic;
 
-        public async Task SendMessageAsync(string topic, string message)
+        public KafkaProducerService(string bootstrapServers, string topic)
         {
-            var config = new ProducerConfig { BootstrapServers = _bootstrapServers };
+            var config = new ProducerConfig { BootstrapServers = bootstrapServers };
+            _producer = new ProducerBuilder<Null, string>(config).Build();
+            _topic = topic;
+        }
 
-            using (var producer = new ProducerBuilder<Null, string>(config).Build())
+        public virtual async Task SendMessageAsync(string topic, string message)
+        {
+            try
             {
-                try
-                {
-                    var deliveryResult = await producer.ProduceAsync(_topic, new Message<Null, string> { Value = message });
-                    Console.WriteLine($"Message delivered to {deliveryResult.TopicPartitionOffset}");
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine($"Error occurred: {e.Message}");
-                }
+                var deliveryResult = await _producer.ProduceAsync(topic, new Message<Null, string> { Value = message });
+                Console.WriteLine($"Delivered '{deliveryResult.Value}' to '{deliveryResult.TopicPartitionOffset}'");
+            }
+            catch (ProduceException<Null, string> e)
+            {
+                Console.WriteLine($"Delivery failed: {e.Error.Reason}");
+                throw;
             }
         }
     }
